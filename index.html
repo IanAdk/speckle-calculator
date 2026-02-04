@@ -511,6 +511,20 @@
         </div>
 
         <div class="calculator">
+            <!-- Introduction Section -->
+            <div class="intro-section" style="margin-bottom: 25px; padding: 20px; background: #f8f9fa; border-radius: 8px; border-left: 4px solid var(--csi-blue);">
+                <h3 style="color: var(--csi-dark); margin-bottom: 10px; font-size: 1.1em;">How This Calculator Works</h3>
+                <p style="color: #555; font-size: 0.95em; line-height: 1.6; margin-bottom: 10px;">
+                    For accurate Digital Image Correlation (DIC) measurements, speckle patterns should be <strong>3-5 pixels in diameter</strong>
+                    as recommended by the iDICs Good Practices Guide. This calculator determines your camera's pixel scale
+                    (physical size per pixel) based on your resolution and field of view, then recommends the optimal
+                    Correlated Solutions Speckle Kit size to achieve this target.
+                </p>
+                <p style="color: #7f8c8d; font-size: 0.85em; margin: 0;">
+                    <strong>Tip:</strong> Select your camera from the dropdown below, or choose "Enter custom resolution..." at the bottom of the list for unlisted cameras.
+                </p>
+            </div>
+
             <!-- Calibration File Upload Section -->
             <div class="form-group">
                 <label>Load from Calibration File <span class="hint">(optional - auto-fills pixel scale)</span></label>
@@ -578,6 +592,9 @@
                         <option value="2464,2056,3.45">Alvium 5.1MP (2464x2056) - 3.45μm pixels</option>
                         <option value="2848,2848,2.74">Alvium 8.1MP (2848x2848) - 2.74μm pixels</option>
                         <option value="4112,3008,3.45">Alvium 12.4MP (4112x3008) - 3.45μm pixels</option>
+                    </optgroup>
+                    <optgroup label="High Speed Cameras">
+                        <option value="1024,1024,0">Full Resolution High Speed (1024x1024)</option>
                     </optgroup>
                     <optgroup label="Custom">
                         <option value="custom">Enter custom resolution...</option>

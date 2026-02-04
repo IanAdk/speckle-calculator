@@ -32,7 +32,7 @@ A web-based tool for calculating optimal speckle pattern sizes for Digital Image
 Embed this calculator in your website using an iframe:
 
 ```html
-<iframe src="https://YOUR-USERNAME.github.io/speckle-calculator-web/"
+<iframe src="https://ianadk.github.io/speckle-calculator/"
         width="100%" height="900" frameborder="0"></iframe>
 ```
 

@@ -488,6 +488,66 @@
             font-size: 0.9em;
         }
 
+        .out-of-range-alert {
+            background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+        }
+
+        .out-of-range-alert h4 {
+            font-size: 1.1em;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .out-of-range-alert p {
+            margin-bottom: 12px;
+            line-height: 1.5;
+        }
+
+        .out-of-range-alert .alternatives {
+            background: rgba(255,255,255,0.15);
+            padding: 12px 15px;
+            border-radius: 8px;
+            margin-top: 10px;
+        }
+
+        .out-of-range-alert .alternatives strong {
+            display: block;
+            margin-bottom: 8px;
+        }
+
+        .out-of-range-alert .alternatives ul {
+            margin: 0;
+            padding-left: 20px;
+        }
+
+        .out-of-range-alert .alternatives li {
+            margin-bottom: 4px;
+        }
+
+        .recommendation-card.out-of-range {
+            background: linear-gradient(135deg, #6c757d 0%, #495057 100%);
+        }
+
+        .recommendation-card.out-of-range .recommended-size {
+            text-decoration: line-through;
+            opacity: 0.7;
+            font-size: 2em;
+        }
+
+        .recommendation-card .ideal-size-note {
+            margin-top: 10px;
+            padding-top: 10px;
+            border-top: 1px solid rgba(255,255,255,0.3);
+            font-size: 0.9em;
+            opacity: 0.9;
+        }
+
         @media (max-width: 600px) {
             .fov-inputs, .speckle-range {
                 grid-template-columns: 1fr;
@@ -964,8 +1024,65 @@
             const resultsDiv = document.getElementById('results');
             const pixelsWithBest = data.bestKitSize / data.pixelScale;
 
+            // Check if ideal size is outside kit range
+            const smallestKit = KIT_SIZES[0]; // 0.007"
+            const largestKit = KIT_SIZES[KIT_SIZES.length - 1]; // 0.20"
+            const isTooSmallForKit = data.idealSpeckle < smallestKit;
+            const isTooLargeForKit = data.idealSpeckle > largestKit;
+            const isOutOfRange = isTooSmallForKit || isTooLargeForKit;
+
             let warningHtml = '';
-            if (pixelsWithBest < 3) {
+            let outOfRangeAlert = '';
+
+            if (isTooSmallForKit) {
+                const idealInMm = data.idealSpeckle * 25.4;
+                outOfRangeAlert = `
+                    <div class="out-of-range-alert">
+                        <h4>⚠️ Ideal Speckle Size is Smaller Than Kit Range</h4>
+                        <p>
+                            Your setup requires speckles around <strong>${data.idealSpeckle.toFixed(4)}" (${idealInMm.toFixed(3)} mm)</strong>
+                            for optimal 3-5 pixel coverage, but our smallest kit size is <strong>0.007" (0.18 mm)</strong>.
+                        </p>
+                        <div class="alternatives">
+                            <strong>Alternative Patterning Methods:</strong>
+                            <ul>
+                                <li><strong>Airbrush:</strong> Fine mist spray paint can achieve very small, random speckle patterns</li>
+                                <li><strong>Spray Paint:</strong> Light dusting from distance creates fine speckles</li>
+                                <li><strong>Toner Transfer:</strong> Laser printer toner patterns for microscale applications</li>
+                                <li><strong>Commercial Patterns:</strong> Pre-printed speckle pattern decals or films</li>
+                            </ul>
+                        </div>
+                        <p style="margin-top: 12px; margin-bottom: 0; opacity: 0.9;">
+                            <strong>Tip:</strong> Consider increasing your field of view or using a lower resolution camera
+                            to bring the required speckle size into kit range.
+                        </p>
+                    </div>
+                `;
+            } else if (isTooLargeForKit) {
+                const idealInMm = data.idealSpeckle * 25.4;
+                outOfRangeAlert = `
+                    <div class="out-of-range-alert">
+                        <h4>⚠️ Ideal Speckle Size is Larger Than Kit Range</h4>
+                        <p>
+                            Your setup requires speckles around <strong>${data.idealSpeckle.toFixed(3)}" (${idealInMm.toFixed(2)} mm)</strong>
+                            for optimal 3-5 pixel coverage, but our largest kit size is <strong>0.20" (5.08 mm)</strong>.
+                        </p>
+                        <div class="alternatives">
+                            <strong>Alternative Patterning Methods:</strong>
+                            <ul>
+                                <li><strong>Hand Painting:</strong> Use a brush or dauber to create larger random dots</li>
+                                <li><strong>Stencils:</strong> Custom stencils with appropriately sized holes</li>
+                                <li><strong>Adhesive Dots:</strong> Pre-cut vinyl or paper dots</li>
+                                <li><strong>Printed Patterns:</strong> Large-format printed speckle patterns</li>
+                            </ul>
+                        </div>
+                        <p style="margin-top: 12px; margin-bottom: 0; opacity: 0.9;">
+                            <strong>Tip:</strong> Consider decreasing your field of view or using a higher resolution camera
+                            to bring the required speckle size into kit range.
+                        </p>
+                    </div>
+                `;
+            } else if (pixelsWithBest < 3) {
                 warningHtml = `
                     <div class="warning-message">
                         <strong>Warning:</strong> The recommended kit size will produce speckles smaller than 3 pixels.
@@ -985,6 +1102,30 @@
             const displayMin = data.useInches ? data.minSpeckle : data.minSpeckle * 25.4;
             const displayMax = data.useInches ? data.maxSpeckle : data.maxSpeckle * 25.4;
             const displayBest = data.useInches ? data.bestKitSize : data.bestKitSizeMm;
+            const displayIdeal = data.useInches ? data.idealSpeckle : data.idealSpeckle * 25.4;
+
+            // Build recommendation card based on whether in range or not
+            let recommendationCard = '';
+            if (isOutOfRange) {
+                recommendationCard = `
+                    <div class="recommendation-card out-of-range">
+                        <h4>Closest Speckle Kit Size (Not Ideal)</h4>
+                        <div class="recommended-size">${data.bestKitSize.toFixed(3)}" / ${data.bestKitSizeMm.toFixed(2)} mm</div>
+                        <div class="recommended-label">approximately ${pixelsWithBest.toFixed(1)} pixels per speckle</div>
+                        <div class="ideal-size-note">
+                            Ideal size for your setup: <strong>${displayIdeal.toFixed(4)} ${unitLabel}</strong> (4 pixels per speckle)
+                        </div>
+                    </div>
+                `;
+            } else {
+                recommendationCard = `
+                    <div class="recommendation-card">
+                        <h4>Recommended Speckle Kit Size</h4>
+                        <div class="recommended-size">${data.bestKitSize.toFixed(3)}" / ${data.bestKitSizeMm.toFixed(2)} mm</div>
+                        <div class="recommended-label">approximately ${pixelsWithBest.toFixed(1)} pixels per speckle</div>
+                    </div>
+                `;
+            }
 
             resultsDiv.innerHTML = `
                 <div class="results-header">
@@ -996,11 +1137,9 @@
                     </p>
                 </div>
 
-                <div class="recommendation-card">
-                    <h4>Recommended Speckle Kit Size</h4>
-                    <div class="recommended-size">${data.bestKitSize.toFixed(3)}" / ${data.bestKitSizeMm.toFixed(2)} mm</div>
-                    <div class="recommended-label">approximately ${pixelsWithBest.toFixed(1)} pixels per speckle</div>
-                </div>
+                ${outOfRangeAlert}
+
+                ${recommendationCard}
 
                 <div class="speckle-range">
                     <div class="range-card">
